@@ -24,12 +24,12 @@ public class CodeGeneratorUtil {
             FullyQualifiedJavaType javaType = introspectedColumn.getFullyQualifiedJavaType();
 
             String name = introspectedColumn.getJavaProperty();
-            String nameFirstCharToUpperCase = firstCharToUpperCase(name);
+            String nameFirstCharUpperCase = firstCharToUpperCase(name);
 
             Method method = new Method();
             method.setVisibility(JavaVisibility.PUBLIC);
             method.setReturnType(javaType);
-            method.setName("get" + nameFirstCharToUpperCase);
+            method.setName("get" + nameFirstCharUpperCase);
 
             method.addBodyLine("return " + name + ";");
             topLevelClass.addMethod(method);
@@ -54,6 +54,15 @@ public class CodeGeneratorUtil {
             method.addBodyLine("this." + name + " = " + name + ";");
             topLevelClass.addMethod(method);
         }
+    }
+
+    public static TopLevelClass getTopLevelClass(IntrospectedTable introspectedTable, FullyQualifiedJavaType javaType) {
+        TopLevelClass topLevelClass = new TopLevelClass(javaType);
+        topLevelClass.setVisibility(JavaVisibility.PUBLIC);
+        addFields(introspectedTable, topLevelClass);
+        addMethodGetter(introspectedTable, topLevelClass);
+        addMethodSetter(introspectedTable, topLevelClass);
+        return topLevelClass;
     }
 
     public static String firstCharToLowerCase(String s) {
