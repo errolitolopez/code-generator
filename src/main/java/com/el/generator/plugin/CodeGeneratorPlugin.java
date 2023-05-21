@@ -56,18 +56,20 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         FullyQualifiedJavaType response = new FullyQualifiedJavaType(rspPackage + "." + "Response");
         FullyQualifiedJavaType rsp = new FullyQualifiedJavaType(rspPackage + "." + domainName + "Rsp");
         FullyQualifiedJavaType service = new FullyQualifiedJavaType(servicePackage + "." + domainName + "Service");
+        FullyQualifiedJavaType baseReq = new FullyQualifiedJavaType(reqPackage + "." + "BaseReq");
+        FullyQualifiedJavaType paged = new FullyQualifiedJavaType(rspPackage + "." + "Paged");
+        FullyQualifiedJavaType pagedRsp = new FullyQualifiedJavaType(paged.getShortName() + "<" + rsp.getShortName() + ">");
 
         FullyQualifiedJavaType aInt = FullyQualifiedJavaType.getIntInstance();
         FullyQualifiedJavaType annotationResource = new FullyQualifiedJavaType("javax.annotation.Resource");
         FullyQualifiedJavaType annotationService = new FullyQualifiedJavaType("org.springframework.stereotype.Service");
         FullyQualifiedJavaType baseRecord = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         FullyQualifiedJavaType example = new FullyQualifiedJavaType(introspectedTable.getExampleType());
-        FullyQualifiedJavaType listRsp = new FullyQualifiedJavaType("List<" + rsp.getShortName() + ">");
         FullyQualifiedJavaType mapper = new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType());
         FullyQualifiedJavaType primaryKey = introspectedTable.getPrimaryKeyColumns().get(0).getFullyQualifiedJavaType();
 
-
         TopLevelClass queryParamTopLevelClass = CodeGeneratorUtil.getTopLevelClass(introspectedTable, queryParam);
+        queryParamTopLevelClass.setSuperClass(baseReq);
         TopLevelClass reqTopLevelClass = CodeGeneratorUtil.getTopLevelClass(introspectedTable, req);
         TopLevelClass rspTopLevelClass = CodeGeneratorUtil.getTopLevelClass(introspectedTable, rsp);
 
@@ -77,9 +79,9 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         serviceInterface.addImportedType(queryParam);
         serviceInterface.addImportedType(req);
         serviceInterface.addImportedType(rsp);
-        serviceInterface.addImportedType(FullyQualifiedJavaType.getNewListInstance());
+        serviceInterface.addImportedType(paged);
 
-        addMethod(serviceInterface, "query", queryParam, "param", listRsp);
+        addMethod(serviceInterface, "query", queryParam, "param", pagedRsp);
         addMethod(serviceInterface, "selectById", primaryKey, "id", rsp);
         addMethod(serviceInterface, "create", req, "req", aInt);
         addMethod(serviceInterface, "updateById", req, "req", aInt);
@@ -109,9 +111,11 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         serviceImplTopLevelClass.addImportedType(FullyQualifiedJavaType.getNewListInstance());
         serviceImplTopLevelClass.addImportedType(annotationResource);
         serviceImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.beans.BeanUtils"));
+        serviceImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.apache.ibatis.session.RowBounds"));
         serviceImplTopLevelClass.addImportedType(annotationService);
+        serviceImplTopLevelClass.addImportedType(paged);
 
-        addServiceQueryMethod(introspectedTable, serviceImplTopLevelClass, queryParam, rsp);
+        addServiceQueryMethod(introspectedTable, serviceImplTopLevelClass, queryParam, rsp, pagedRsp);
         addServiceSelectByIdMethod(introspectedTable, serviceImplTopLevelClass, primaryKey, rsp);
         addServiceCreateMethod(introspectedTable, serviceImplTopLevelClass, req, aInt);
         addServiceUpdateByIdMethod(introspectedTable, serviceImplTopLevelClass, req, aInt);
@@ -149,12 +153,12 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         facadeImplTopLevelClass.addImportedType(response);
         facadeImplTopLevelClass.addImportedType(rsp);
         facadeImplTopLevelClass.addImportedType(service);
-        facadeImplTopLevelClass.addImportedType(FullyQualifiedJavaType.getNewListInstance());
         facadeImplTopLevelClass.addImportedType(annotationResource);
         facadeImplTopLevelClass.addImportedType(annotationService);
         facadeImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.transaction.annotation.Transactional"));
+        facadeImplTopLevelClass.addImportedType(paged);
 
-        addFacadeQueryMethod(facadeImplTopLevelClass, queryParam, service, rsp, response);
+        addFacadeQueryMethod(facadeImplTopLevelClass, queryParam, service, pagedRsp, response);
         addFacadeSelectByIdMethod(facadeImplTopLevelClass, primaryKey, service, rsp, response);
         addFacadeCreateMethod(facadeImplTopLevelClass, req, service, rsp, response);
         addFacadeUpdateByIdMethod(facadeImplTopLevelClass, req, service, rsp, response);
@@ -220,7 +224,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         aInterface.addMethod(method);
     }
 
-    private static void addServiceQueryMethod(IntrospectedTable introspectedTable, TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType aReturn) {
+    private static void addServiceQueryMethod(IntrospectedTable introspectedTable, TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType aReturn, FullyQualifiedJavaType paged) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setName("query");
@@ -235,7 +239,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
 
         FullyQualifiedJavaType listReturnJavaType = new FullyQualifiedJavaType("List<" + name + ">");
         FullyQualifiedJavaType rspListReturnJavaType = new FullyQualifiedJavaType("List<" + aReturn + ">");
-        method.setReturnType(rspListReturnJavaType);
+        method.setReturnType(paged);
 
         FullyQualifiedJavaType exampleJavaType = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         String exampleName = exampleJavaType.getShortName();
@@ -245,17 +249,25 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         String rspName = aReturn.getShortName();
         String rspLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(rspName);
 
-        method.addBodyLine(rspListReturnJavaType.getShortName() + " rspList = new ArrayList<>();");
+        method.addBodyLine(paged.getShortName() + " paged = new " + paged.getShortName() + "();");
+        method.addBodyLine("paged.setPageNo(param.getPageNo());");
+        method.addBodyLine("paged.setPageSize(param.getPageSize());");
         method.addBodyLine(exampleName + " " + exampleNameLowerFirstChar + " = new " + exampleName + "();");
-        method.addBodyLine(listReturnJavaType.getShortName() + " " + listName + " = " + mapperName + "." + introspectedTable.getSelectByExampleStatementId() + "(" + exampleNameLowerFirstChar + ");");
-        method.addBodyLine("if (!" + listName + ".isEmpty()) {");
-        method.addBodyLine("for(" + name + " " + nameLowerCaseFirstChar + " : " + listName + ") {");
+        method.addBodyLine("long total = " + mapperName + "." + introspectedTable.getCountByExampleStatementId() + "(" + exampleNameLowerFirstChar + ");");
+        method.addBodyLine("paged.setTotal(total);");
+        method.addBodyLine("if (total == 0) {");
+        method.addBodyLine("return paged;");
+        method.addBodyLine("}");
+        method.addBodyLine("RowBounds rowBounds = new RowBounds(paged.offSet(), paged.limit());");
+        method.addBodyLine(listReturnJavaType.getShortName() + " " + listName + " = " + mapperName + "." + "selectByExampleWithRowbounds(" + exampleNameLowerFirstChar + ", rowBounds);");
+        method.addBodyLine(rspListReturnJavaType.getShortName() + " rspList = new ArrayList<>();");
+        method.addBodyLine("for (" + name + " " + nameLowerCaseFirstChar + " : " + listName + ") {");
         method.addBodyLine(rspName + " " + rspLowerCaseFirstChar + " = new " + rspName + "();");
         method.addBodyLine("BeanUtils.copyProperties(" + nameLowerCaseFirstChar + ", " + rspLowerCaseFirstChar + ");");
         method.addBodyLine("rspList.add(" + rspLowerCaseFirstChar + ");");
         method.addBodyLine("}");
-        method.addBodyLine("}");
-        method.addBodyLine("return rspList;");
+        method.addBodyLine("paged.setData(rspList);");
+        method.addBodyLine("return paged;");
         topLevelClass.addMethod(method);
     }
 
@@ -366,13 +378,12 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         String serviceNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(serviceName);
 
         String rspName = serviceReturn.getShortName();
-        String rspLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(rspName);
-        String rspListName = rspLowerCaseFirstChar + "List";
+        String rspNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(serviceReturn.getShortNameWithoutTypeArguments());
 
         method.addBodyLine(mainReturn.getShortName() + " response = new " + mainReturn.getShortName() + "();");
-        method.addBodyLine("List<" + rspName + "> " + rspListName + " = " + serviceNameLowerCaseFirstChar + ".query(param);");
-        method.addBodyLine("if (!" + rspListName + ".isEmpty()) {");
-        method.addBodyLine("response.setResult(" + rspListName + ");");
+        method.addBodyLine(rspName + " " + rspNameLowerCaseFirstChar + " = " + serviceNameLowerCaseFirstChar + ".query(param);");
+        method.addBodyLine("if (" + rspNameLowerCaseFirstChar + ".getTotal() > 0) {");
+        method.addBodyLine("response.setResult(" + rspNameLowerCaseFirstChar + ");");
         method.addBodyLine("}");
         method.addBodyLine("return response;");
         topLevelClass.addMethod(method);
