@@ -10,12 +10,14 @@
         <plugin type="org.mybatis.generator.plugins.ToStringPlugin"/>
 
         <plugin type="com.el.generator.plugin.CodeGeneratorPlugin">
-            <property name="targetServiceProject" value="foo-bar/foo-bar-biz/src/main/java"/>
+            <property name="targetBizProject" value="foo-bar/foo-bar-biz/src/main/java"/>
             <property name="targetDomainProject" value="foo-bar/foo-bar-domain/src/main/java"/>
+            <property name="targetControllerProject" value="foo-bar/foo-bar-web/src/main/java"/>
             <property name="reqPackage" value="com.el.example.domain.req"/>
             <property name="rspPackage" value="com.el.example.domain.rsp"/>
             <property name="servicePackage" value="com.el.example.service"/>
             <property name="facadePackage" value="com.el.example.facade"/>
+            <property name="controllerPackage" value="com.el.example.controller"/>
             <property name="removeFirstChar" value="true"/>
         </plugin>
 

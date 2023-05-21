@@ -37,26 +37,35 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         }
 
         String domainName = CodeGeneratorUtil.firstCharToUpperCase(introspectedTable.getTableConfiguration().getDomainObjectName(), IS_FIRST_CHAR_REMOVED);
+        String domainNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(domainName);
 
-        String facadePackage = properties.getProperty("facadePackage");
         String reqPackage = properties.getProperty("reqPackage");
         String rspPackage = properties.getProperty("rspPackage");
         String servicePackage = properties.getProperty("servicePackage");
-        String targetServiceProject = properties.getProperty("targetServiceProject");
-        String targetDomainProject = properties.getProperty("targetDomainProject");
+        String facadePackage = properties.getProperty("facadePackage");
+        String controllerPackage = properties.getProperty("controllerPackage");
 
-        FullyQualifiedJavaType aInt = FullyQualifiedJavaType.getIntInstance();
-        FullyQualifiedJavaType baseRecord = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
-        FullyQualifiedJavaType example = new FullyQualifiedJavaType(introspectedTable.getExampleType());
+        String targetDomainProject = properties.getProperty("targetDomainProject");
+        String targetBizProject = properties.getProperty("targetBizProject");
+        String targetControllerProject = properties.getProperty("targetControllerProject");
+
+        FullyQualifiedJavaType controller = new FullyQualifiedJavaType(controllerPackage + "." + domainName + "Controller");
         FullyQualifiedJavaType facade = new FullyQualifiedJavaType(facadePackage + "." + domainName + "Facade");
-        FullyQualifiedJavaType mapper = new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType());
-        FullyQualifiedJavaType primaryKey = introspectedTable.getPrimaryKeyColumns().get(0).getFullyQualifiedJavaType();
         FullyQualifiedJavaType queryParam = new FullyQualifiedJavaType(reqPackage + ".Query" + domainName + "Param");
         FullyQualifiedJavaType req = new FullyQualifiedJavaType(reqPackage + "." + domainName + "Req");
-        FullyQualifiedJavaType rsp = new FullyQualifiedJavaType(rspPackage + "." + domainName + "Rsp");
         FullyQualifiedJavaType response = new FullyQualifiedJavaType(rspPackage + "." + "Response");
+        FullyQualifiedJavaType rsp = new FullyQualifiedJavaType(rspPackage + "." + domainName + "Rsp");
         FullyQualifiedJavaType service = new FullyQualifiedJavaType(servicePackage + "." + domainName + "Service");
+
+        FullyQualifiedJavaType aInt = FullyQualifiedJavaType.getIntInstance();
+        FullyQualifiedJavaType annotationResource = new FullyQualifiedJavaType("javax.annotation.Resource");
+        FullyQualifiedJavaType annotationService = new FullyQualifiedJavaType("org.springframework.stereotype.Service");
+        FullyQualifiedJavaType baseRecord = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
+        FullyQualifiedJavaType example = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         FullyQualifiedJavaType listRsp = new FullyQualifiedJavaType("List<" + rsp.getShortName() + ">");
+        FullyQualifiedJavaType mapper = new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType());
+        FullyQualifiedJavaType primaryKey = introspectedTable.getPrimaryKeyColumns().get(0).getFullyQualifiedJavaType();
+
 
         TopLevelClass queryParamTopLevelClass = CodeGeneratorUtil.getTopLevelClass(introspectedTable, queryParam);
         TopLevelClass reqTopLevelClass = CodeGeneratorUtil.getTopLevelClass(introspectedTable, req);
@@ -98,9 +107,9 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         serviceImplTopLevelClass.addImportedType(service);
         serviceImplTopLevelClass.addImportedType(FullyQualifiedJavaType.getNewArrayListInstance());
         serviceImplTopLevelClass.addImportedType(FullyQualifiedJavaType.getNewListInstance());
-        serviceImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("javax.annotation.Resource"));
+        serviceImplTopLevelClass.addImportedType(annotationResource);
         serviceImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.beans.BeanUtils"));
-        serviceImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Service"));
+        serviceImplTopLevelClass.addImportedType(annotationService);
 
         addServiceQueryMethod(introspectedTable, serviceImplTopLevelClass, queryParam, rsp);
         addServiceSelectByIdMethod(introspectedTable, serviceImplTopLevelClass, primaryKey, rsp);
@@ -141,8 +150,8 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         facadeImplTopLevelClass.addImportedType(rsp);
         facadeImplTopLevelClass.addImportedType(service);
         facadeImplTopLevelClass.addImportedType(FullyQualifiedJavaType.getNewListInstance());
-        facadeImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("javax.annotation.Resource"));
-        facadeImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Service"));
+        facadeImplTopLevelClass.addImportedType(annotationResource);
+        facadeImplTopLevelClass.addImportedType(annotationService);
         facadeImplTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.transaction.annotation.Transactional"));
 
         addFacadeQueryMethod(facadeImplTopLevelClass, queryParam, service, rsp, response);
@@ -151,22 +160,54 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         addFacadeUpdateByIdMethod(facadeImplTopLevelClass, req, service, rsp, response);
         addFacadeDeleteByIdMethod(facadeImplTopLevelClass, primaryKey, service, rsp, response);
 
+        TopLevelClass controllerTopLevelClass = new TopLevelClass(controller.getPackageName() + "." + controller.getShortName());
+        controllerTopLevelClass.setVisibility(JavaVisibility.PUBLIC);
+        controllerTopLevelClass.addAnnotation("@RestController");
+        controllerTopLevelClass.addAnnotation("@RequestMapping(\"/" + domainNameLowerCaseFirstChar + "\")");
+
+        Field facadeField = new Field();
+        facadeField.addAnnotation("");
+        facadeField.addAnnotation("@Resource");
+        facadeField.setVisibility(JavaVisibility.PRIVATE);
+        facadeField.setType(facade);
+        facadeField.setName(CodeGeneratorUtil.firstCharToLowerCase(facade.getShortName()));
+        controllerTopLevelClass.addField(facadeField);
+
+        controllerTopLevelClass.addImportedType(annotationResource);
+        controllerTopLevelClass.addImportedType(facade);
+        controllerTopLevelClass.addImportedType(queryParam);
+        controllerTopLevelClass.addImportedType(response);
+        controllerTopLevelClass.addImportedType(req);
+        controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RestController"));
+        controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestMapping"));
+        controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestMethod"));
+        controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestBody"));
+
+        addControllerQueryMethod(controllerTopLevelClass, queryParam, facade, rsp, response);
+        addControllerSelectByIdMethod(controllerTopLevelClass, primaryKey, facade, rsp, response);
+        addControllerCreateMethod(controllerTopLevelClass, req, facade, rsp, response);
+        addControllerUpdateByIdMethod(controllerTopLevelClass, req, facade, rsp, response);
+        addControllerDeleteByIdMethod(controllerTopLevelClass, primaryKey, facade, rsp, response);
+
         GeneratedJavaFile queryParamJavaFile = new GeneratedJavaFile(queryParamTopLevelClass, targetDomainProject, "UTF-8", getContext().getJavaFormatter());
         GeneratedJavaFile reqJavaFile = new GeneratedJavaFile(reqTopLevelClass, targetDomainProject, "UTF-8", getContext().getJavaFormatter());
         GeneratedJavaFile rspJavaFile = new GeneratedJavaFile(rspTopLevelClass, targetDomainProject, "UTF-8", getContext().getJavaFormatter());
 
-        GeneratedJavaFile facadeJavaFile = new GeneratedJavaFile(facadeInterface, targetServiceProject, "UTF-8", getContext().getJavaFormatter());
-        GeneratedJavaFile serviceJavaFile = new GeneratedJavaFile(serviceInterface, targetServiceProject, "UTF-8", getContext().getJavaFormatter());
-        GeneratedJavaFile serviceImplJavaFile = new GeneratedJavaFile(serviceImplTopLevelClass, targetServiceProject, "UTF-8", getContext().getJavaFormatter());
-        GeneratedJavaFile facadeImplJavaFile = new GeneratedJavaFile(facadeImplTopLevelClass, targetServiceProject, "UTF-8", getContext().getJavaFormatter());
+        GeneratedJavaFile serviceJavaFile = new GeneratedJavaFile(serviceInterface, targetBizProject, "UTF-8", getContext().getJavaFormatter());
+        GeneratedJavaFile serviceImplJavaFile = new GeneratedJavaFile(serviceImplTopLevelClass, targetBizProject, "UTF-8", getContext().getJavaFormatter());
+        GeneratedJavaFile facadeJavaFile = new GeneratedJavaFile(facadeInterface, targetBizProject, "UTF-8", getContext().getJavaFormatter());
+        GeneratedJavaFile facadeImplJavaFile = new GeneratedJavaFile(facadeImplTopLevelClass, targetBizProject, "UTF-8", getContext().getJavaFormatter());
+        GeneratedJavaFile controllerJavaFile = new GeneratedJavaFile(controllerTopLevelClass, targetControllerProject, "UTF-8", getContext().getJavaFormatter());
 
         generatedJavaFiles.add(queryParamJavaFile);
         generatedJavaFiles.add(reqJavaFile);
         generatedJavaFiles.add(rspJavaFile);
+
         generatedJavaFiles.add(serviceJavaFile);
+        generatedJavaFiles.add(serviceImplJavaFile);
         generatedJavaFiles.add(facadeJavaFile);
         generatedJavaFiles.add(facadeImplJavaFile);
-        generatedJavaFiles.add(serviceImplJavaFile);
+        generatedJavaFiles.add(controllerJavaFile);
         return generatedJavaFiles;
     }
 
@@ -414,6 +455,85 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         method.addBodyLine(FullyQualifiedJavaType.getIntInstance().getShortName() + " i = " + serviceNameLowerCaseFirstChar + "." + "deleteById(id);");
         method.addBodyLine("response.setResult(i);");
         method.addBodyLine("return response;");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addControllerQueryMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(mainReturn);
+        method.setName("query");
+        method.addAnnotation("@RequestMapping(method = RequestMethod.GET, value = \"/query\")");
+        method.addParameter(new Parameter(param, "param"));
+
+        String facadeName = facade.getShortName();
+        String facadeNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(facadeName);
+
+        method.addBodyLine("return " + facadeNameLowerCaseFirstChar + ".query(param);");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addControllerSelectByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(mainReturn);
+        method.setName("selectById");
+        method.addAnnotation("@RequestMapping(method = RequestMethod.GET, value = \"/select\")");
+        method.addParameter(new Parameter(param, "id"));
+
+        String facadeName = facade.getShortName();
+        String facadeNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(facadeName);
+
+        method.addBodyLine("return " + facadeNameLowerCaseFirstChar + ".selectById(id);");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addControllerCreateMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(mainReturn);
+        method.setName("create");
+        method.addAnnotation("@RequestMapping(method = RequestMethod.POST, value = \"/create\")");
+        Parameter parameter = new Parameter(param, "req");
+        parameter.addAnnotation("@RequestBody");
+        method.addParameter(parameter);
+
+        String facadeName = facade.getShortName();
+        String facadeNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(facadeName);
+
+        method.addBodyLine("return " + facadeNameLowerCaseFirstChar + ".create(req);");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addControllerUpdateByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(mainReturn);
+        method.setName("updateById");
+        method.addAnnotation("@RequestMapping(method = RequestMethod.POST, value = \"/update\")");
+        Parameter parameter = new Parameter(param, "req");
+        parameter.addAnnotation("@RequestBody");
+        method.addParameter(parameter);
+
+        String facadeName = facade.getShortName();
+        String facadeNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(facadeName);
+
+        method.addBodyLine("return " + facadeNameLowerCaseFirstChar + ".updateById(req);");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addControllerDeleteByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(mainReturn);
+        method.setName("delete");
+        method.addAnnotation("@RequestMapping(method = RequestMethod.POST, value = \"/delete\")");
+        method.addParameter(new Parameter(param, "id"));
+
+        String facadeName = facade.getShortName();
+        String facadeNameLowerCaseFirstChar = CodeGeneratorUtil.firstCharToLowerCase(facadeName);
+
+        method.addBodyLine("return " + facadeNameLowerCaseFirstChar + ".deleteById(id);");
         topLevelClass.addMethod(method);
     }
 }
