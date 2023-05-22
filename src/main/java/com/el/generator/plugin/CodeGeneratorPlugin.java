@@ -255,6 +255,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         method.addBodyLine("paged.setPageNo(param.getPageNo());");
         method.addBodyLine("paged.setPageSize(param.getPageSize());");
         method.addBodyLine(exampleName + " " + exampleNameLowerFirstChar + " = new " + exampleName + "();");
+        method.addBodyLine(exampleNameLowerFirstChar + ".setOrderByClause(param.getOrderByClause());");
         method.addBodyLine(exampleName + ".Criteria " + exampleNameLowerFirstChar + "Criteria = " + exampleNameLowerFirstChar + ".createCriteria();");
         method.addBodyLine("buildCriteria(param, " + exampleNameLowerFirstChar + "Criteria);");
         method.addBodyLine("long total = " + mapperName + "." + introspectedTable.getCountByExampleStatementId() + "(" + exampleNameLowerFirstChar + ");");
