@@ -2,6 +2,7 @@ package com.el.generator.plugin;
 
 import com.el.generator.util.CodeGeneratorUtil;
 import org.mybatis.generator.api.GeneratedJavaFile;
+import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.*;
@@ -120,6 +121,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         addServiceCreateMethod(introspectedTable, serviceImplTopLevelClass, req, aInt);
         addServiceUpdateByIdMethod(introspectedTable, serviceImplTopLevelClass, req, aInt);
         addServiceDeleteByIdMethod(introspectedTable, serviceImplTopLevelClass, primaryKey, aInt);
+        addBuildCriteria(introspectedTable, serviceImplTopLevelClass, queryParam);
 
         Interface facadeInterface = new Interface(facade);
         facadeInterface.setVisibility(JavaVisibility.PUBLIC);
@@ -253,6 +255,8 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         method.addBodyLine("paged.setPageNo(param.getPageNo());");
         method.addBodyLine("paged.setPageSize(param.getPageSize());");
         method.addBodyLine(exampleName + " " + exampleNameLowerFirstChar + " = new " + exampleName + "();");
+        method.addBodyLine(exampleName + ".Criteria " + exampleNameLowerFirstChar + "Criteria = " + exampleNameLowerFirstChar + ".createCriteria();");
+        method.addBodyLine("buildCriteria(param, " + exampleNameLowerFirstChar + "Criteria);");
         method.addBodyLine("long total = " + mapperName + "." + introspectedTable.getCountByExampleStatementId() + "(" + exampleNameLowerFirstChar + ");");
         method.addBodyLine("paged.setTotal(total);");
         method.addBodyLine("if (total == 0) {");
@@ -268,6 +272,37 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         method.addBodyLine("}");
         method.addBodyLine("paged.setData(rspList);");
         method.addBodyLine("return paged;");
+        topLevelClass.addMethod(method);
+    }
+
+    private static void addBuildCriteria(IntrospectedTable introspectedTable, TopLevelClass topLevelClass, FullyQualifiedJavaType param) {
+        Method method = new Method();
+        method.setVisibility(JavaVisibility.PRIVATE);
+        method.setName("buildCriteria");
+
+        FullyQualifiedJavaType exampleJavaType = new FullyQualifiedJavaType(introspectedTable.getExampleType());
+        String exampleName = exampleJavaType.getShortName();
+
+        FullyQualifiedJavaType exampleCriteria = new FullyQualifiedJavaType(exampleName + ".Criteria");
+
+        method.addParameter(new Parameter(param, "param"));
+        method.addParameter(new Parameter(exampleCriteria, "criteria"));
+
+        for (IntrospectedColumn introspectedColumn : introspectedTable.getAllColumns()) {
+            FullyQualifiedJavaType javaType = introspectedColumn.getFullyQualifiedJavaType();
+
+            String name = introspectedColumn.getJavaProperty();
+            String nameFirstCharToUpperCase = CodeGeneratorUtil.firstCharToUpperCase(name);
+
+            String paramGet = "param.get" + nameFirstCharToUpperCase + "()";
+            if (javaType.equals(FullyQualifiedJavaType.getStringInstance())) {
+                method.addBodyLine("if (" + paramGet + " != null || " + paramGet + ".trim().length() > 0) {");
+            } else {
+                method.addBodyLine("if (" + paramGet + " != null) {");
+            }
+            method.addBodyLine("criteria.and" + nameFirstCharToUpperCase + "EqualTo(" + paramGet + ");");
+            method.addBodyLine("}");
+        }
         topLevelClass.addMethod(method);
     }
 
