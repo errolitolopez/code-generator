@@ -297,7 +297,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
 
             String paramGet = "param.get" + nameFirstCharToUpperCase + "()";
             if (javaType.equals(FullyQualifiedJavaType.getStringInstance())) {
-                method.addBodyLine("if (" + paramGet + " != null || " + paramGet + ".trim().length() > 0) {");
+                method.addBodyLine("if (" + paramGet + " != null && " + paramGet + ".trim().length() > 0) {");
             } else {
                 method.addBodyLine("if (" + paramGet + " != null) {");
             }
