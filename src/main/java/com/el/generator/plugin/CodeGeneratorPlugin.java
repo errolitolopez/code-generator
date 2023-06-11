@@ -162,8 +162,8 @@ public class CodeGeneratorPlugin extends PluginAdapter {
 
         addFacadeQueryMethod(facadeImplTopLevelClass, queryParam, service, pagedRsp, response);
         addFacadeSelectByIdMethod(facadeImplTopLevelClass, primaryKey, service, rsp, response);
-        addFacadeCreateMethod(facadeImplTopLevelClass, req, service, rsp, response);
-        addFacadeUpdateByIdMethod(facadeImplTopLevelClass, req, service, rsp, response);
+        addFacadeCreateMethod(facadeImplTopLevelClass, req, service, response);
+        addFacadeUpdateByIdMethod(facadeImplTopLevelClass, req, service, response);
         addFacadeDeleteByIdMethod(facadeImplTopLevelClass, primaryKey, service, rsp, response);
 
         TopLevelClass controllerTopLevelClass = new TopLevelClass(controller.getPackageName() + "." + controller.getShortName());
@@ -189,11 +189,11 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestMethod"));
         controllerTopLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestBody"));
 
-        addControllerQueryMethod(controllerTopLevelClass, queryParam, facade, rsp, response);
-        addControllerSelectByIdMethod(controllerTopLevelClass, primaryKey, facade, rsp, response);
-        addControllerCreateMethod(controllerTopLevelClass, req, facade, rsp, response);
-        addControllerUpdateByIdMethod(controllerTopLevelClass, req, facade, rsp, response);
-        addControllerDeleteByIdMethod(controllerTopLevelClass, primaryKey, facade, rsp, response);
+        addControllerQueryMethod(controllerTopLevelClass, queryParam, facade, response);
+        addControllerSelectByIdMethod(controllerTopLevelClass, primaryKey, facade, response);
+        addControllerCreateMethod(controllerTopLevelClass, req, facade, response);
+        addControllerUpdateByIdMethod(controllerTopLevelClass, req, facade, response);
+        addControllerDeleteByIdMethod(controllerTopLevelClass, primaryKey, facade, response);
 
         GeneratedJavaFile queryParamJavaFile = new GeneratedJavaFile(queryParamTopLevelClass, targetDomainProject, "UTF-8", getContext().getJavaFormatter());
         GeneratedJavaFile reqJavaFile = new GeneratedJavaFile(reqTopLevelClass, targetDomainProject, "UTF-8", getContext().getJavaFormatter());
@@ -448,7 +448,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addFacadeCreateMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType service, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addFacadeCreateMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType service, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -467,7 +467,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addFacadeUpdateByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType service, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addFacadeUpdateByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType service, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -505,7 +505,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addControllerQueryMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addControllerQueryMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -520,7 +520,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addControllerSelectByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addControllerSelectByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -535,7 +535,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addControllerCreateMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addControllerCreateMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -552,7 +552,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addControllerUpdateByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addControllerUpdateByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
@@ -569,7 +569,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         topLevelClass.addMethod(method);
     }
 
-    private static void addControllerDeleteByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType serviceReturn, FullyQualifiedJavaType mainReturn) {
+    private static void addControllerDeleteByIdMethod(TopLevelClass topLevelClass, FullyQualifiedJavaType param, FullyQualifiedJavaType facade, FullyQualifiedJavaType mainReturn) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
         method.setReturnType(mainReturn);
