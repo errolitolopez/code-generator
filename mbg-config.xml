@@ -9,18 +9,15 @@
         <plugin type="org.mybatis.generator.plugins.CaseInsensitiveLikePlugin"/>
         <plugin type="org.mybatis.generator.plugins.ToStringPlugin"/>
 
-        <plugin type="com.el.generator.plugin.PojoGeneratorPlugin">
-            <property name="targetProject" value="foo-bar/foo-bar-domain/src/main/java"/>
-            <property name="reqPackage" value="com.el.example.domain.req"/>
-            <property name="rspPackage" value="com.el.example.domain.rsp"/>
-            <property name="removeFirstChar" value="true"/>
-        </plugin>
-
-        <plugin type="com.el.generator.plugin.ServiceGeneratorPlugin">
-            <property name="targetProject" value="foo-bar/foo-bar-service/src/main/java"/>
+        <plugin type="com.el.generator.plugin.CodeGeneratorPlugin">
+            <property name="targetBizProject" value="foo-bar/foo-bar-biz/src/main/java"/>
+            <property name="targetDomainProject" value="foo-bar/foo-bar-domain/src/main/java"/>
+            <property name="targetControllerProject" value="foo-bar/foo-bar-web/src/main/java"/>
             <property name="reqPackage" value="com.el.example.domain.req"/>
             <property name="rspPackage" value="com.el.example.domain.rsp"/>
             <property name="servicePackage" value="com.el.example.service"/>
+            <property name="facadePackage" value="com.el.example.facade"/>
+            <property name="controllerPackage" value="com.el.example.controller"/>
             <property name="removeFirstChar" value="true"/>
         </plugin>
 
@@ -49,7 +46,7 @@
                          targetProject="foo-bar/foo-bar-dal/src/main/resources"/>
 
         <javaClientGenerator type="XMLMAPPER" targetPackage="com.el.example.dao"
-        targetProject="foo-bar/foo-bar-dal/src/main/java"/>
+                             targetProject="foo-bar/foo-bar-dal/src/main/java"/>
 
 
         <table tableName="T_FOO_BAR" domainObjectName="TFooBar">
