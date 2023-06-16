@@ -1,14 +1,19 @@
 package com.el.generator.util;
 
 import org.mybatis.generator.api.dom.java.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class BaseClassUtil {
 
+    private static Logger logger = LoggerFactory.getLogger(BaseClassUtil.class);
+
     public static boolean isJavaFileNotExists(String basePath, FullyQualifiedJavaType javaType) {
         String filename = basePath + "/" + (javaType.toString().replaceAll("\\.", "/") + ".java");
         File file = new File(filename);
+        logger.info("filename: {}, isExists: {}", filename, file.exists());
         return !file.exists();
     }
 
@@ -90,8 +95,8 @@ public class BaseClassUtil {
 
         Field totalField = new Field();
         totalField.setVisibility(JavaVisibility.PRIVATE);
-        totalField.setName("total = 0");
-        totalField.setType(new FullyQualifiedJavaType("Integer"));
+        totalField.setName("total = 0L");
+        totalField.setType(new FullyQualifiedJavaType("Long"));
 
         Field dataField = new Field();
         dataField.setVisibility(JavaVisibility.PRIVATE);

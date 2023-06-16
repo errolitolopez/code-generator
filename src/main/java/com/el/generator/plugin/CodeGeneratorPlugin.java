@@ -286,7 +286,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         method.addBodyLine("if (total == 0) {");
         method.addBodyLine("return paged;");
         method.addBodyLine("}");
-        method.addBodyLine("RowBounds rowBounds = new RowBounds(paged.offSet(), paged.limit());");
+        method.addBodyLine("RowBounds rowBounds = new RowBounds(paged.offset(), paged.limit());");
         method.addBodyLine(listReturnJavaType.getShortName() + " " + listName + " = " + mapperName + "." + "selectByExampleWithRowbounds(" + exampleNameLowerFirstChar + ", rowBounds);");
         method.addBodyLine(rspListReturnJavaType.getShortName() + " rspList = new ArrayList<>();");
         method.addBodyLine("for (" + name + " " + nameLowerCaseFirstChar + " : " + listName + ") {");
