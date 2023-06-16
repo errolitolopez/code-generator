@@ -216,21 +216,21 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         generatedJavaFiles.add(facadeImplJavaFile);
         generatedJavaFiles.add(controllerJavaFile);
 
-        if (!BaseClassUtil.isJavaFileNotExists(targetDomainProject, response)) {
+        if (BaseClassUtil.isJavaFileNotExists(targetDomainProject, response)) {
             GeneratedJavaFile javaFile = new GeneratedJavaFile(BaseClassUtil.generateResponseTopLevelClass(response), targetDomainProject, "UTF-8", getContext().getJavaFormatter());
             logger.info("file does not exists: {}", response.getShortName());
             logger.info("generating: \n{}", javaFile.toString());
             generatedJavaFiles.add(javaFile);
         }
 
-        if (!BaseClassUtil.isJavaFileNotExists(targetDomainProject, baseReq)) {
-            GeneratedJavaFile javaFile = new GeneratedJavaFile(BaseClassUtil.generatePagedTopLevelClass(baseReq), targetDomainProject, "UTF-8", getContext().getJavaFormatter());
+        if (BaseClassUtil.isJavaFileNotExists(targetDomainProject, baseReq)) {
+            GeneratedJavaFile javaFile = new GeneratedJavaFile(BaseClassUtil.generateBaseReqTopLevelClass(baseReq), targetDomainProject, "UTF-8", getContext().getJavaFormatter());
             logger.info("file does not exists: {}", response.getShortName());
             logger.info("generating: \n{}", javaFile);
             generatedJavaFiles.add(javaFile);
         }
 
-        if (!BaseClassUtil.isJavaFileNotExists(targetDomainProject, paged)) {
+        if (BaseClassUtil.isJavaFileNotExists(targetDomainProject, paged)) {
             GeneratedJavaFile javaFile = new GeneratedJavaFile(BaseClassUtil.generatePagedTopLevelClass(paged), targetDomainProject, "UTF-8", getContext().getJavaFormatter());
             logger.info("file does not exists: {}", paged.getShortName());
             logger.info("generating: \n{}", javaFile);
