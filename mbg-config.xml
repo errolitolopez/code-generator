@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <classPathEntry location="mysql-connector-java-5.1.49.jar"/>
+    <!--    <classPathEntry location="ojdbc8.jar"/>-->
+    <context id="DB2Tables" targetRuntime="MyBatis3">
+        <plugin type="com.el.generator.plugin.MyBatisFilesOverwritePlugin">
+            <property name="overwrite" value="true"/>
+        </plugin>
+
+        <plugin type="com.el.generator.plugin.CodeGeneratorPlugin">
+            <property name="removedFirstChar" value="false"/>
+            <property name="targetPath" value="foo-bar/src/main/java"/>
+            <property name="reqPackage" value="com.example.demo.domain.req"/>
+            <property name="rspPackage" value="com.example.demo.domain.rsp"/>
+            <property name="servicePackage" value="com.example.demo.service"/>
+            <property name="facadePackage" value="com.example.demo.facade"/>
+            <property name="controllerPackage" value="com.example.demo.web.controller"/>
+        </plugin>
+
+        <commentGenerator>
+            <property name="suppressAllComments" value="false"/>
+            <property name="suppressDate" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection
+                driverClass="com.mysql.jdbc.Driver"
+                connectionURL="jdbc:mysql://localhost:3306/test?useSSL=false&amp;allowPublicKeyRetrieval=true"
+                userId="root"
+                password="123qwe">
+        </jdbcConnection>
+
+        <!--        <jdbcConnection-->
+        <!--                driverClass="oracle.jdbc.OracleDriver"-->
+        <!--                connectionURL="jdbc:oracle:thin:@localhost:1521:XE"-->
+        <!--                userId="root"-->
+        <!--                password="123qwe">-->
+        <!--        </jdbcConnection>-->
+
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="false"/>
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="com.example.demo.dao" targetProject="foo-bar/src/main/java"/>
+
+        <sqlMapGenerator targetPackage="com.example.demo.dao" targetProject="foo-bar/src/main/resources"/>
+
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.example.demo.dao"
+                             targetProject="foo-bar/src/main/java"/>
+
+        <table tableName="FOO_BAR" domainObjectName="FooBar">
+            <property name="useActualColumnNames" value="false"/>
+        </table>
+    </context>
+</generatorConfiguration>
