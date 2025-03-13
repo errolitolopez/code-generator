@@ -71,7 +71,7 @@ public class CodeGeneratorPlugin extends PluginAdapter {
         FullyQualifiedJavaType rowBoundsJavaType = new FullyQualifiedJavaType("org.apache.ibatis.session.RowBounds");
         FullyQualifiedJavaType beanUtilsJavaType = new FullyQualifiedJavaType("org.springframework.beans.BeanUtils");
         FullyQualifiedJavaType serviceAnnotationJavaType = new FullyQualifiedJavaType("org.springframework.stereotype.Service");
-        FullyQualifiedJavaType resourceAnnotationJavaType = new FullyQualifiedJavaType("javax.annotation.Resource");
+        FullyQualifiedJavaType resourceAnnotationJavaType = new FullyQualifiedJavaType("jakarta.annotation.Resource");
 
         List<Field> fields = FieldUtils.getFields(table);
         // POJO
